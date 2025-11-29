@@ -15,8 +15,8 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 sh '''
-                    echo "Installing Python dependencies..."
-                    python3 -m pip install --user -r requirements.txt
+                  echo "Installing Python dependencies..."
+                  python3 -m pip install -r requirements.txt
                 '''
             }
         }
@@ -24,8 +24,8 @@ pipeline {
         stage('Run tests') {
             steps {
                 sh '''
-                    echo "Running tests with pytest..."
-                    python3 -m pytest -v
+                  echo "Running tests with pytest..."
+                  python3 -m pytest -v
                 '''
             }
         }
@@ -33,8 +33,8 @@ pipeline {
         stage('Security scan (Bandit)') {
             steps {
                 sh '''
-                    echo "Running security scan with bandit..."
-                    python3 -m bandit -r .
+                  echo "Running security scan with bandit..."
+                  python3 -m bandit -r .
                 '''
             }
         }
@@ -45,11 +45,11 @@ pipeline {
             }
             steps {
                 sh '''
-                    echo "Sending success notification to Discord..."
-                    curl -X POST \
-                        -H "Content-Type: application/json" \
-                        -d '{"content": "✅ Jenkins build for job devops-final-pipeline **SUCCEEDED**."}' \
-                        "$DISCORD_WEBHOOK_URL"
+                  echo "Sending success notification to Discord..."
+                  curl -X POST \
+                    -H "Content-Type: application/json" \
+                    -d '{"content": "✅ Jenkins build for job devops-final-pipeline **SUCCEEDED**."}' \
+                    "$DISCORD_WEBHOOK_URL"
                 '''
             }
         }
@@ -58,11 +58,11 @@ pipeline {
     post {
         failure {
             sh '''
-                echo "Sending failure notification to Discord..."
-                curl -X POST \
-                    -H "Content-Type: application/json" \
-                    -d '{"content": "❌ Jenkins build for job devops-final-pipeline **FAILED**. Check Jenkins for details."}' \
-                    "$DISCORD_WEBHOOK_URL"
+              echo "Sending failure notification to Discord..."
+              curl -X POST \
+                -H "Content-Type: application/json" \
+                -d '{"content": "❌ Jenkins build for job devops-final-pipeline **FAILED**. Check Jenkins for details."}' \
+                "$DISCORD_WEBHOOK_URL"
             '''
         }
     }
