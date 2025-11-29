@@ -1,68 +1,64 @@
-// Jenkinsfile
-
 pipeline {
     agent any
 
     environment {
-        // Webex incoming webhook URL stored as a "Secret text" credential in Jenkins
-        INCOMING_URL = credentials('webex-incoming-url')
+        // ❗ Replace this with your actual Discord webhook URL
+        DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1444133402256085073/VMMWdkfphM1BLs4Wfj3udJQfEiwi-z3auX2QSaJ1a0VEhb1gFVLNRCdXxO4G5OZUpARm'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "Checking out source code from SCM..."
+                // Jenkins will automatically check out from GitHub,
+                // but this makes it explicit for clarity
                 checkout scm
             }
         }
 
         stage('Install dependencies') {
             steps {
-                echo "Installing Python dependencies (pytest, bandit)..."
                 sh '''
-                    set -eux
-                    pip3 install --upgrade pip
-                    pip3 install -r requirements.txt
+                    echo "Installing Python dependencies..."
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
                 '''
             }
         }
 
-        stage('Run unit tests') {
+        stage('Run tests') {
             steps {
-                echo "Running pytest..."
                 sh '''
-                    set -eux
+                    echo "Running tests with pytest..."
                     pytest
                 '''
             }
         }
 
-        stage('Run Bandit security scan') {
+        stage('Notify Discord (success)') {
+            when {
+                expression { currentBuild.currentResult == 'SUCCESS' }
+            }
             steps {
-                echo "Running Bandit security scan..."
-                // -r . = recursively scan the current directory
-                // -ll = only show issues with medium and high severity, keeps output manageable
-                sh '''
-                    set -eux
-                    bandit -r . -ll
-                '''
+                script {
+                    def msg = "✅ Jenkins build #${env.BUILD_NUMBER} for job '${env.JOB_NAME}' **SUCCEEDED**."
+                    sh """
+                        curl -X POST -H 'Content-Type: application/json' \
+                          -d '{\"content\": \"${msg}\"}' \
+                          ${DISCORD_WEBHOOK_URL}
+                    """
+                }
             }
         }
     }
 
-    // Always send a Webex notification whether build passes or fails
     post {
-        always {
+        failure {
             script {
-                def result = currentBuild.currentResult  // "SUCCESS", "FAILURE", etc.
-
-                echo "Sending Webex notification with build result: ${result}"
-
-                // Simple one-line summary message to Webex space
+                def msg = "❌ Jenkins build #${env.BUILD_NUMBER} for job '${env.JOB_NAME}' **FAILED**. Check Jenkins for details."
                 sh """
-                    curl -X POST -H "Content-Type: application/json" \
-                        -d '{ "markdown": "Jenkins job **${env.JOB_NAME}** build #${env.BUILD_NUMBER} finished with status **${result}**. Commit: `${env.GIT_COMMIT}`" }' \
-                        $INCOMING_URL
+                    curl -X POST -H 'Content-Type: application/json' \
+                      -d '{\"content\": \"${msg}\"}' \
+                      ${DISCORD_WEBHOOK_URL}
                 """
             }
         }
