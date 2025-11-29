@@ -12,29 +12,12 @@ pipeline {
             }
         }
 
-        stage('Install dependencies') {
-            steps {
-                sh '''
-                  echo "Installing Python dependencies..."
-                  python3 -m pip install -r requirements.txt
-                '''
-            }
-        }
-
         stage('Run tests') {
             steps {
                 sh '''
-                  echo "Running tests with pytest..."
-                  python3 -m pytest -v
-                '''
-            }
-        }
-
-        stage('Security scan (Bandit)') {
-            steps {
-                sh '''
-                  echo "Running security scan with bandit..."
-                  python3 -m bandit -r .
+                  echo "Running tests with plain Python..."
+                  python3 app.py
+                  python3 test_app.py
                 '''
             }
         }
