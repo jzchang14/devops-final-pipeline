@@ -3,8 +3,6 @@ pipeline {
 
     environment {
         DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1444133402256085073/VMMWdkfphM1BLs4Wfj3udJQfEiwi-z3auX2QSaJ1a0VEhb1gFVLNRCdXxO4G5OZUpARm'
-        // Allows pip to install packages despite PEP 668 "externally managed environment"
-        PIP_BREAK_SYSTEM_PACKAGES = '1'
     }
 
     stages {
@@ -17,8 +15,8 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 sh '''
-                    echo "Installing Python dependencies..."
-                    python3 -m pip install -r requirements.txt
+                  echo "Installing Python dependencies..."
+                  python3 -m pip install -r requirements.txt
                 '''
             }
         }
@@ -36,7 +34,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Running security scan with bandit..."
-                    bandit -r .
+                    python3 -m bandit -r .
                 '''
             }
         }
