@@ -2,15 +2,12 @@ pipeline {
     agent any
 
     environment {
-        // ❗ Replace this with your actual Discord webhook URL
         DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1444133402256085073/VMMWdkfphM1BLs4Wfj3udJQfEiwi-z3auX2QSaJ1a0VEhb1gFVLNRCdXxO4G5OZUpARm'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Jenkins will automatically check out from GitHub,
-                // but this makes it explicit for clarity
                 checkout scm
             }
         }
@@ -19,8 +16,8 @@ pipeline {
             steps {
                 sh '''
                     echo "Installing Python dependencies..."
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
+                    pip3 install --upgrade pip
+                    pip3 install -r requirements.txt
                 '''
             }
         }
@@ -28,8 +25,8 @@ pipeline {
         stage('Run tests') {
             steps {
                 sh '''
-                    echo "Running tests with pytest..."
-                    pytest
+                    echo "Running unit tests..."
+                    python3 -m pytest -v
                 '''
             }
         }
@@ -39,28 +36,26 @@ pipeline {
                 expression { currentBuild.currentResult == 'SUCCESS' }
             }
             steps {
-                script {
-                    def msg = "✅ Jenkins build #${env.BUILD_NUMBER} for job '${env.JOB_NAME}' **SUCCEEDED**."
-                    sh """
-                        curl -X POST -H 'Content-Type: application/json' \
-                          -d '{\"content\": \"${msg}\"}' \
-                          ${DISCORD_WEBHOOK_URL}
-                    """
-                }
+                sh '''
+                    echo "Sending success notification to Discord..."
+                    curl -X POST \
+                        -H "Content-Type: application/json" \
+                        -d '{"content": "✅ Jenkins build for job devops-final-pipeline **SUCCEEDED**."}' \
+                        "$DISCORD_WEBHOOK_URL"
+                '''
             }
         }
     }
 
     post {
         failure {
-            script {
-                def msg = "❌ Jenkins build #${env.BUILD_NUMBER} for job '${env.JOB_NAME}' **FAILED**. Check Jenkins for details."
-                sh """
-                    curl -X POST -H 'Content-Type: application/json' \
-                      -d '{\"content\": \"${msg}\"}' \
-                      ${DISCORD_WEBHOOK_URL}
-                """
-            }
+            sh '''
+                echo "Sending failure notification to Discord..."
+                curl -X POST \
+                    -H "Content-Type: application/json" \
+                    -d '{"content": "❌ Jenkins build for job devops-final-pipeline **FAILED**. Check Jenkins for details."}' \
+                    "$DISCORD_WEBHOOK_URL"
+            '''
         }
     }
 }
