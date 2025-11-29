@@ -21,5 +21,5 @@ def is_strong_password(pwd: str) -> bool:
 
 
 if __name__ == "__main__":
-    print("2 + 3 =", add(2, 3))
+    print("2 + 4 =", add(2, 4))
     print("Is 'abcd1234' strong?", is_strong_password("abcd1234"))
