@@ -15,9 +15,8 @@ pipeline {
         stage('Install dependencies') {
             steps {
                 sh '''
-                    echo "Installing Python dependencies..."
-                    pip3 install --upgrade pip
-                    pip3 install -r requirements.txt
+                  echo "Installing Python dependencies..."
+                  python3 -m pip install --user -r requirements.txt
                 '''
             }
         }
@@ -25,11 +24,12 @@ pipeline {
         stage('Run tests') {
             steps {
                 sh '''
-                    echo "Running unit tests..."
+                    echo "Running tests with pytest..."
                     python3 -m pytest -v
                 '''
             }
         }
+
 
         stage('Notify Discord (success)') {
             when {
